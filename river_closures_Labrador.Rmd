@@ -1,0 +1,136 @@
+---
+title: "River Closures at different temperature thresholds - Labrador"
+date: "`r Sys.Date()`"
+authors: Emilie Geissinger, Curtis Pennell, Brianna Newton, Chelsea Bloom, and Keith Lewis
+affiliation: Coastal and Freshwater Ecology
+output:
+   html_document: 
+      toc: true
+      toc_float: true
+      toc_collapsed: true
+      toc_depth: 3
+      number_sections: true
+      theme: lumen
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = 'C:/Users/lewiske/Documents/CAFE/projects/temperature/river_closures_Labrador/river_closures_Labrador')
+options(knitr.kable.NA = '')
+
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(ggpubr)
+library(osmdata)
+library(sf)
+library(geodata)
+library(kableExtra)
+```
+
+
+```{r loggers, echo = FALSE, warning = FALSE, message= FALSE}
+source("lab_dat.R")
+
+```
+
+# SFA's and rivers
+```{r rivers lookup, echo = FALSE, warning = FALSE, message= FALSE}
+
+kbl(df20  |> select(SFA, river.number, river, Date) |>
+   group_by(river) |>
+   slice(which.min(Date)) |>
+   arrange(river.number) |>
+   select(-Date)|>
+   rowid_to_column(), 
+   align = 'llll') |>
+   column_spec(1, width = "10mm") |>
+   column_spec(2, width = "10mm") |>
+   column_spec(3, width = "30mm") |>
+   column_spec(4, width = "60mm")
+```
+
+
+# Interpretation of figures
+The figures display water temperature (left y-axis) and, in some cases, water level (y-right axis) by date (x-axis).  The grey box signifies the period for restricted fishing (morning fishing, closure).  
+Following a **strict interpretation** of DFOs environmental protocols, a monitoring periods is triggered when the water is above 20 deg C every hour of the day for three consecutive days (orange).  If the period following these three days remains above 20 deg C, it is assumed that a partial closure would be implemented (red).   
+Horizontal lines indicate 20 (solid), 19 (dotdash) and 18 (dotted) deg C.  The vertical lines indicate when monitoring would begin (lines to the left) at 19 and 18 deg C and when closures would end (lines to the right).  
+Note that for monitoring and closure at 18 and 19 deg C, that according to the protocol, the river could reopen for periods of time.  
+Note that DFO does not follow a strict interpretation of the environmental protocols because other factors like the long term forecast are taken into account.
+
+
+# Figures
+
+```{r figs SFA 1-2, message = FALSE, echo = FALSE, warning = FALSE}
+for (i in seq_along(rivers[1:13])) {
+p1 <-    ggplot() +
+   geom_line(data = df20 |> filter(river == rivers[i]), 
+             aes(x = Date, y = Temp.C, color = "open", group = 1, text = 
+                    paste("Date: ", Date, "\n",
+                          "Temp: ", round(Temp.C, 2),
+                          sep = ""))) +
+   {if(nrow(df20 |> filter(river == rivers[i] & status == "closed")) > 0){
+      geom_line(data = df20 |> filter(river == rivers[i] & status == "closed"), 
+                aes(x = Date, y = Temp.C, group = period, color = "closed", group = 1, text = 
+                       paste("Date: ", Date, "\n",
+                             "Temp: ", round(Temp.C, 2),
+                             sep = "")))   
+   }} +
+   {if(nrow(df20 |> filter(river == rivers[i] & status == "monitored")) > 0){
+      geom_line(data = df20 |> filter(river == rivers[i] & status == "monitored"), 
+                aes(x = Date, y = Temp.C, group = period, color = "monitored", group = 1, text = 
+                       paste("Date: ", Date, "\n",
+                             "Temp: ", round(Temp.C, 2),
+                             sep = "")))
+   }} +
+   theme_bw(base_size = 12) +
+   geom_hline(yintercept = 20, linetype = 'dashed') +
+   geom_hline(yintercept = 19, linetype = 'dotdash') +
+   geom_hline(yintercept = 18, linetype = 'dotted') +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "mon19_24"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "mon19_24"], linetype = 'dotdash')      
+   }} +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "mon18_24"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "mon18_24"], linetype = 'dotted')
+   }} +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "close19_24"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "close19_24"], linetype = 'dotdash')
+   }} +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "close18_24"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "close18_24"], linetype = 'dotted')
+   }} +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "mon19_23"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "mon19_23"], linetype = 'dotdash')      
+   }} +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "mon18_23"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "mon18_23"], linetype = 'dotted')
+   }} +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "close19_23"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "close19_23"], linetype = 'dotdash')
+   }} +
+   {if(!is.na(df_stat_all[df_stat_all$river == rivers[i], "close18_23"])){
+      geom_vline(xintercept = df_stat_all[df_stat_all$river == rivers[i], "close18_23"], linetype = 'dotted')
+   }} +
+   scale_color_manual(name = "Temperature-based river status",
+                      labels = c("open", "monitored", "closed"),
+                      breaks = c("open", "monitored", "closed"),
+                      values = c('black', 'darkorange', 'red')) +
+   labs(x = "Date",
+        y = "Temperature (°C)",
+        title = paste0(
+           rivers[i], 
+            "\n SFA = ", 
+            df20$SFA[df20$river == rivers[i]][1],
+            ", River # = ", 
+            df20$river.number[df20$river == rivers[i]][1]
+        )) + 
+   scale_y_continuous(name = "Water Temperature (°C)", limits = c(10, 33)) + 
+   scale_x_datetime(date_breaks = "1 month", date_labels = "%b") +
+#   theme(legend.position = "bottom") + 
+   theme(legend.position = "none") +
+   facet_wrap(~Year, scales = "free_x")
+   
+print(p1)      
+#print(plotly::ggplotly(p1))
+}
+```
