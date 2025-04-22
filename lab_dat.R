@@ -142,7 +142,9 @@ df_lab$Year <- as.integer(format(df_lab$Date, "%Y"))
 rivers_csv <- c("Shinneys River Lower", "Shinneys River Upper")
 rivers <- c(rivers, rivers_csv)
 
-
+river.number <- c(river.number, 15, 15)
+temp_riv <- as.data.frame(cbind(river = rivers, river.number))
+temp_riv$river.number <- as.integer(temp_riv$river.number)
 
 # seasons ----
 ## set dates ----
@@ -290,6 +292,11 @@ df18 <- season18 |>
 df20 <- cbind(df20, status19 = df19$status)
 df20 <- cbind(df20, status18 = df18$status)
 
+# river order ----
+rivers_df <- df20 |>
+   select(river) |> 
+   distinct() 
+rivers <- as.character(rivers_df[,1])
 
 
 
@@ -354,8 +361,8 @@ df_stat_2024 <- left_join(df_stat_2024, vc19_2024, by = c("Year", "SFA", "river.
    select("Year", "SFA", "river.number", "river", "mon19_24", "mon18_24", close19_24 = "Date")
 
 df_stat_2024 <- left_join(df_stat_2024, vc18_2024, by = c("Year", "SFA", "river.number", "river")) |>  
-   select("Year", "SFA", "river.number", "river", "mon19_24", "mon18_24", "close19_24", close18_24 = "Date")
-
+   select("Year", "SFA", "river.number", "river", "mon19_24", "mon18_24", "close19_24", close18_24 = "Date") |> arrange(river.number, river) 
+df_stat_2024 <- left_join(rivers_df, df_stat_2024, by = 'river')
 
 
 
@@ -366,16 +373,15 @@ df_stat_2023 <- left_join(df_stat_2023, vc19_2023, by = c("Year", "SFA", "river.
    select("Year", "SFA", "river.number", "river", "mon19_23", "mon18_23", close19_23 = "Date")
 
 df_stat_2023 <- left_join(df_stat_2023, vc18_2023, by = c("Year", "SFA", "river.number", "river")) |>  
-   select("Year", "SFA", "river.number", "river", "mon19_23", "mon18_23", "close19_23", close18_23 = "Date")
+   select("Year", "SFA", "river.number", "river", "mon19_23", "mon18_23", "close19_23", close18_23 = "Date") |> arrange(river.number, river) 
 
-df_stat_all <- full_join(df_stat_2024, df_stat_2023, by = c("SFA", "river.number", "river"))  |> arrange(river.number, river)
+df_stat_2023 <- left_join(rivers_df, df_stat_2023, by = 'river')
+
+df_stat_all <- full_join(df_stat_2024, df_stat_2023, by = c("SFA", "river.number", "river"))  |> arrange(river.number, river) 
+#View(df_stat_all)
+#df_stat_all[!is.na(df_stat_all$mon19_24), "mon19_24"] 
 
 
-# river order ----
-rivers_df <- df20 |>
-   select(river) |> 
-   distinct() 
-rivers <- as.character(rivers_df[,1])
 #str(rivers_df)
 # str(rivers)
 
@@ -384,5 +390,32 @@ df20 <- df20 |>
    filter(!(river == "CharBrook2 River" & Year == 2023)) |>
    filter(!(river == "CharBrook1 River" & Year == 2024)) 
 #str(df20)
+
+
+# closures ----
+real.closures <- read.csv("./data-working/Environmental Protocol Analysis 2020 to 2024 CDV 12-13-2024.csv") |> 
+   rename(SFA = Salmon.Fishing.Area) |> 
+   filter(Year == 2024) |>
+   dplyr::select(SFA, River.Number, Date.of.Closure, Re.open.Date) |> 
+   mutate(Date.of.Closure = ymd_h(paste(Date.of.Closure, 5)),
+          Re.open.Date = ymd_h(paste(Re.open.Date, 5))) |>
+   mutate(Year = year(Date.of.Closure))
+real.closures <- real.closures[-c(35, 116),] 
+
+
+real.closures23 <- read.csv("./data-working/Environmental Protocol Analysis 2020 to 2024 CDV 12-13-2024.csv") |> 
+   rename(SFA = Salmon.Fishing.Area) |> 
+   filter(Year == 2023) |>
+   dplyr::select(SFA, River.Number, Date.of.Closure, Re.open.Date) |> 
+   mutate(Date.of.Closure = ymd_h(paste(Date.of.Closure, 5)),
+          Re.open.Date = ymd_h(paste(Re.open.Date, 5))) |>
+   mutate(Year = year(Date.of.Closure))
+
+
+
+river.closures.SFA2 <- left_join(temp_riv, real.closures |> filter(SFA == 2), by = c("river.number" = "River.Number")) 
+
+#river.closures.SFA2 <- river.closures.SFA2[!is.na(river.closures.SFA2$river),]
+
 
 # # END ----
