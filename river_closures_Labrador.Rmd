@@ -56,7 +56,8 @@ The figures display water temperature (left y-axis) and, in some cases, water le
 Following a **strict interpretation** of DFOs environmental protocols, a monitoring periods is triggered when the water is above 20 deg C every hour of the day for three consecutive days (orange).  If the period following these three days remains above 20 deg C, it is assumed that a partial closure would be implemented (red).   
 Horizontal lines indicate 20 (solid), 19 (dotdash) and 18 (dotted) deg C.  The vertical lines indicate when monitoring would begin (lines to the left) at 19 and 18 deg C and when closures would end (lines to the right).  
 Note that for monitoring and closure at 18 and 19 deg C, that according to the protocol, the river could reopen for periods of time.  
-Note that DFO does not follow a strict interpretation of the environmental protocols because other factors like the long term forecast are taken into account.
+Note that DFO does not follow a strict interpretation of the environmental protocols because other factors like the long term forecast are taken into account.  
+**Note** that unlike island data, Labrador data have not been QA/QC'ed for being out of water, i.e., dates with highly variable or extreme temperatures have not been removed.  This affects the vertical lines and should be disregarded for these graphs.
 
 
 # SFA 1

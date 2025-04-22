@@ -103,8 +103,8 @@ df_temp1 <- bind_rows(ls_cell)
 ## do skip 2 in the future so that you don't have to change the column names in the csv and then add in the column names
 shin1 <- read.csv("data-working/Shinneys_River_Lower_26Sept2024_21340906.csv",  skip = 1, fileEncoding="latin1")
 # str(shin1)
+colnames(shin1) <- c("id", "Date", "Temp.C", "Level.m")
 shin1 <- shin1[,1:3]
-names(shin1)[names(shin1) == "Date.Time"] <- "Date"
 shin1$Date <- format(strptime(shin1$Date, format = "%m/%d/%Y %H:%M"), "%m/%d/%y %H:%M")
 # str(shin1)
 ########## the problem is with the above line
@@ -120,8 +120,7 @@ shin1$SFA <- 2
 shin2 <- read.csv("data-working/shinneys_upper_sept_27_2024_21400367.csv",  skip = 1, fileEncoding="latin1")
 # str(shin2)
 shin2 <- shin2[, c(1, 2, 4)] 
-names(shin2)[names(shin2) == "Date.Time"] <- "Date"
-
+colnames(shin2) <- c("id", "Date", "Temp.C")
 shin2$Date <- format(strptime(shin2$Date, format = "%m/%d/%y %I:%M:%S %p"), "%m/%d/%y %H:%M:%S")
 shin2$Date <- as.POSIXct(shin2$Date, format = "%m/%d/%y %H:%M:%S")
 shin2$id_serial <- "21400367"
